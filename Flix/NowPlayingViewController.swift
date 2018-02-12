@@ -9,21 +9,30 @@
 import UIKit
 import AlamofireImage
 
-class NowPlayingViewController: UIViewController, UITableViewDataSource {
+class NowPlayingViewController: UIViewController, UITableViewDataSource, UISearchBarDelegate, UITableViewDelegate {
     
     @IBOutlet weak var tableView: UITableView!
+    
+    @IBOutlet var tapRecognizer: UITapGestureRecognizer!
+    
+    var searchArray: [[String: Any]] = [];
     var movies: [[String: Any]] = [];
+  
     var refreshControl: UIRefreshControl!
+    
+    // search bar
+    @IBOutlet weak var searchBar: UISearchBar!
     
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     override func viewDidLoad() {
         super.viewDidLoad();
+        searchBar.delegate = self;
         refreshControl = UIRefreshControl();
         refreshControl.addTarget(self, action: #selector (NowPlayingViewController.didPullToRefresh(_:)), for: .valueChanged)
         tableView.insertSubview(refreshControl, at: 0);
         tableView.dataSource = self;
-        
+        tableView.delegate = self;
         tableView.rowHeight = 180;
         fetchMovies();
     }
@@ -47,6 +56,7 @@ class NowPlayingViewController: UIViewController, UITableViewDataSource {
                 let dataDictionary = try! JSONSerialization.jsonObject(with: data, options: []) as! [String: Any];
                 let movies = dataDictionary["results"] as! [[String: Any]];
                 self.movies = movies;
+                self.searchArray = movies;
                 self.tableView.reloadData();
                 self.refreshControl.endRefreshing();
             }
@@ -55,12 +65,12 @@ class NowPlayingViewController: UIViewController, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return movies.count;
+        return searchArray.count;
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "MovieCell", for: indexPath) as! MovieCell;
-        let movie = movies[indexPath.row];
+        let movie = searchArray[indexPath.row];
         let title = movie["title"] as! String;
         let overview = movie["overview"] as! String;
         cell.titleLabel.text = title;
@@ -76,6 +86,53 @@ class NowPlayingViewController: UIViewController, UITableViewDataSource {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    // This method updates filteredData based on the text in the Search Box
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        
+        // When there is no text, filteredData is the same as the original data
+        // When user has entered text into the search box
+        // Use the filter method to iterate over all items in the data array
+        // For each item, return true if the item should be included and false if the
+        // item should NOT be included
+        tapRecognizer.isEnabled = true;
+        if(searchText.isEmpty){
+            searchArray = movies;
+        }
+        else{
+            searchArray = [];
+            for item in movies {
+                if ((item["title"] as! String).contains(searchText)){
+                    searchArray.append(item);
+                }
+            }
+        }
+        
+        
+        
+        
+        
+        tableView.reloadData();
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.showsCancelButton = false;
+        searchBar.text = "";
+        searchBar.resignFirstResponder();
+        searchArray = movies;
+        tableView.reloadData();
+    }
+    
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        self.searchBar.showsCancelButton = true
+    }
+    
+    
+    @IBAction func clicked(_ sender: Any) {
+        tapRecognizer.isEnabled = false;
+        self.view.endEditing(true);
+    }
+    
     
 
     /*
