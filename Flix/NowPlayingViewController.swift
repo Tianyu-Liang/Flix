@@ -102,7 +102,7 @@ class NowPlayingViewController: UIViewController, UITableViewDataSource, UISearc
         else{
             searchArray = [];
             for item in movies {
-                if ((item["title"] as! String).contains(searchText)){
+                if ((item["title"] as! String).lowercased().contains(searchText.lowercased())){
                     searchArray.append(item);
                 }
             }
