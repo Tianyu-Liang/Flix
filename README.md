@@ -160,10 +160,11 @@ GIF created with [LiceCap](http://www.cockos.com/licecap/).
 ## Notes
 
 Describe any challenges encountered while building the app.
+The constraints often collided with each other; it was difficult to make them fit.
 
 ## License
 
-Copyright [yyyy] [name of copyright owner]
+Copyright [2018] [Tianyu Liang]
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
