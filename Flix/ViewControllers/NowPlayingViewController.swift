@@ -33,7 +33,9 @@ class NowPlayingViewController: UIViewController, UITableViewDataSource, UISearc
         tableView.insertSubview(refreshControl, at: 0);
         tableView.dataSource = self;
         tableView.delegate = self;
-        tableView.rowHeight = 180;
+        // tableView.rowHeight = 180;
+        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.estimatedRowHeight = 50
         fetchMovies();
     }
     
