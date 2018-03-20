@@ -15,8 +15,8 @@ class NowPlayingViewController: UIViewController, UITableViewDataSource, UISearc
     
     @IBOutlet var tapRecognizer: UITapGestureRecognizer!
     
-    var searchArray: [[String: Any]] = [];
-    var movies: [[String: Any]] = [];
+    var searchArray: [Movie] = [];
+    var movies: [Movie] = [];
   
     var refreshControl: UIRefreshControl!
     
@@ -46,7 +46,7 @@ class NowPlayingViewController: UIViewController, UITableViewDataSource, UISearc
     }
     
     func fetchMovies(){
-        
+        /*
         let url = URL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed")!;
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10);
         let session = URLSession(configuration: .default, delegate: nil, delegateQueue: OperationQueue.main);
@@ -56,14 +56,24 @@ class NowPlayingViewController: UIViewController, UITableViewDataSource, UISearc
                 print(error.localizedDescription);
             }else if let data = data{
                 let dataDictionary = try! JSONSerialization.jsonObject(with: data, options: []) as! [String: Any];
-                let movies = dataDictionary["results"] as! [[String: Any]];
-                self.movies = movies;
-                self.searchArray = movies;
+                let movieDictionaries = dataDictionary["results"] as! [[String: Any]];
+                self.movies = []
+                self.movies = Movie.movies(dictionaries: movieDictionaries)
+                
+                self.searchArray = self.movies;
                 self.tableView.reloadData();
                 self.refreshControl.endRefreshing();
             }
         }
-        task.resume();
+        task.resume(); */
+        MovieApiManager().nowPlayingMovies { (movies: [Movie]?, error: Error?) in
+            if let movies = movies {
+                self.movies = movies
+                self.searchArray = self.movies;
+                self.tableView.reloadData()
+                self.refreshControl.endRefreshing();
+            }
+        }
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -73,14 +83,8 @@ class NowPlayingViewController: UIViewController, UITableViewDataSource, UISearc
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "MovieCell", for: indexPath) as! MovieCell;
         let movie = searchArray[indexPath.row];
-        let title = movie["title"] as! String;
-        let overview = movie["overview"] as! String;
-        cell.titleLabel.text = title;
-        cell.overviewLabel.text = overview;
-        let posterPathString = movie["poster_path"] as! String;
-        let baseURLString = "https://image.tmdb.org/t/p/w500";
-        let posterURL = URL(string: baseURLString + posterPathString);
-        cell.posterImageView.af_setImage(withURL: posterURL!);
+        cell.movie = movie
+        
         return cell;
     }
 
@@ -104,7 +108,7 @@ class NowPlayingViewController: UIViewController, UITableViewDataSource, UISearc
         else{
             searchArray = [];
             for item in movies {
-                if ((item["title"] as! String).lowercased().contains(searchText.lowercased())){
+                if ((item.title).lowercased().contains(searchText.lowercased())){
                     searchArray.append(item);
                 }
             }
